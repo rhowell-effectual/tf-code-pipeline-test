@@ -9,7 +9,7 @@ locals {
   default_environment = {
     TF_IN_AUTOMATION  = "1"
     TF_INPUT          = "0"
-    CONFIRM_DESTROY   = "0"
+    TF_DESTROY   = "0"
     WORKING_DIRECTORY = var.working_directory
   }
 
@@ -103,6 +103,7 @@ resource "aws_codepipeline" "codepipeline" {
         FullRepositoryId = var.github_repo.repo_path
         BranchName       = var.github_repo.branch
         ConnectionArn    = aws_codestarconnections_connection.github.arn
+        OutputArtifactFormat = "CODE_ZIP"
       }
     }
   }

@@ -1,3 +1,8 @@
+#
+# Input variables
+#
+variable "force_destroy_state_bucket" { default = false }
+
 # partial config
 terraform {
   backend "s3" {}
@@ -6,14 +11,14 @@ terraform {
 # provider "aws" {}
 
 module "remote_state" {
-  source = "../../modules/remote-state"
+  source = "../../../modules/remote-state"
 
-  # aws_region = "us-east-1"
   bucket_name          = "ryan-sandbox-tf-remote-state"
   environment          = "sandbox"
-  force_destroy_bucket = true
+  force_destroy_bucket = var.force_destroy_state_bucket
   dynamo_table_name    = "ryan-sandbox-tf-lock-table"
 }
+
 #
 # Outputs
 #

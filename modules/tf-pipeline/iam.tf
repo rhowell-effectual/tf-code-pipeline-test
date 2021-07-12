@@ -1,141 +1,64 @@
+# Codebuild IAM Assume Role Policy template
+data "template_file" "assume_role_policy" {
+  template = file("${path.module}/templates/policies/codebuild_assume_role_policy.json.tpl")
+}
+
+# Codebuild IAM Role
 resource "aws_iam_role" "codebuild" {
   name               = "${local.namespace}-codebuild"
-  assume_role_policy = <<-EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codebuild.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = "${data.template_file.assume_role_policy.rendered}"
 }
 
+# Codebuild IAM Policy template
+data "template_file" "codebuild_policy" {
+  template = file("${path.module}/templates/policies/codebuild_policy.json.tpl")
+
+  vars = {
+    codepipeline_bucket_arn        = "${aws_s3_bucket.codepipeline.arn}"
+    codepipeline_sns_arn           = "${aws_sns_topic.codepipeline.arn}"
+    github_codestar_connection_arn = "${aws_codestarconnections_connection.github.arn}"
+    remote_state_bucket_arn        = "${var.state_bucket_arn}"
+    remote_state_dynamodb_arn      = "${var.state_lock_table_arn}"
+  }
+}
+
+# Codebuild IAM Policy (Codebuild permissions)
 resource "aws_iam_role_policy" "codebuild" {
   role   = aws_iam_role.codebuild.name
-  policy = <<-EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Resource": [
-        "*"
-      ],
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ]
-    },
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.codepipeline.arn}",
-        "${aws_s3_bucket.codepipeline.arn}"
-      ]
-    }
-  ]
-}
-EOF
+  policy = "${data.template_file.codebuild_policy.rendered}"
 }
 
-resource "aws_iam_role_policy" "deploy" {
-  count  = var.deployment_policy != null ? 1 : 0
-  role   = aws_iam_role.codebuild.name
-  policy = var.deployment_policy
+# Codepipeline IAM Assume Role Policy template
+data "template_file" "cp_assume_role_policy" {
+  template = file("${path.module}/templates/policies/codepipeline_assume_role_policy.json.tpl")
 }
 
+# Codepiepline IAM Role
 resource "aws_iam_role" "codepipeline" {
   name               = "${local.namespace}-codepipeline"
-  assume_role_policy = <<-EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = "${data.template_file.cp_assume_role_policy.rendered}"
 }
 
-resource "aws_iam_role_policy" "codepipeline" {
+# Codepipeline IAM Policy template
+data "template_file" "cp_codebuild_policy" {
+  template = file("${path.module}/templates/policies/codepipeline_policy.json.tpl")
+
+  vars = {
+    codepipeline_bucket_arn        = "${aws_s3_bucket.codepipeline.arn}"
+    codepipeline_sns_arn           = "${aws_sns_topic.codepipeline.arn}"
+    github_codestar_connection_arn = "${aws_codestarconnections_connection.github.arn}"
+  }
+}
+
+# Codepipeline IAM Policy (Codepipeline permissions)
+resource "aws_iam_role_policy" "cp_codebuild_policy" {
   role   = aws_iam_role.codepipeline.id
-  policy = <<-EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning",
-        "s3:PutObject",
-        "s3:PutObjectAcl"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.codepipeline.arn}",
-        "${aws_s3_bucket.codepipeline.arn}"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "sns:Publish"
-      ],
-      "Resource": "${aws_sns_topic.codepipeline.arn}"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild",
-        "codebuild:ListConnectedOAuthAccounts",
-        "codebuild:ListRepositories",
-        "codebuild:PersistOAuthToken",
-        "codebuild:ImportSourceCredentials"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-          "codestar-connections:UseConnection"
-      ],
-      "Resource": "${aws_codestarconnections_connection.github.arn}"
-    }
-  ]
-}
-EOF
+  policy = "${data.template_file.cp_codebuild_policy.rendered}"
 }
 
+#
+# Outputs
+#
 output "deployment_role_arn" {
   value = aws_iam_role.codebuild.arn
 }

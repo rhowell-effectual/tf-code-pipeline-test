@@ -39,12 +39,14 @@ variable "deployment_policy" {
   description = "An optional IAM deployment policy"
 }
 
-# variable "s3_backend_config" {
-#   type = object({
-#     bucket         = string,
-#     region         = string,
-#     role_arn       = string,
-#     dynamodb_table = string,
-#   })
-#   description = "Settings for configuring the S3 remote backend"
-# }
+variable "state_bucket_arn" {
+  type        = string
+  default     = null
+  description = "S3 bucket containing remote state"
+}
+
+variable "state_lock_table_arn" {
+  type        = string
+  default     = null
+  description = "S3 bucket containing remote state"
+}
