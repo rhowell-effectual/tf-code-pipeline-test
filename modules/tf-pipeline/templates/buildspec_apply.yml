@@ -3,11 +3,10 @@ phases:
   build:
     commands:
        - cd $WORKING_DIRECTORY
-      #  - echo $BACKEND >> backend.tf.json
        - terraform init -backend-config=backend.tfvars
        - |
          if [[ "$TF_DESTROY" == "0" ]]; then
-           terraform apply -auto-approve
+           terraform apply -auto-approve -var-file=vars.tfvars
          else
-           terraform destroy -auto-approve
+           terraform destroy -auto-approve -var-file=vars.tfvars
          fi

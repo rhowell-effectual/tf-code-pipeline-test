@@ -1,5 +1,5 @@
-bucket         = "ryan-sandbox-tf-remote-state"
-key            = "sandbox/dev/terraform.tfstate"
+bucket         = "testing-tf-remote-state"
+key            = "testing/cicd/terraform.tfstate"
 region         = "us-east-1"
-dynamodb_table = "ryan-sandbox-tf-lock-table"
+dynamodb_table = "testing-tf-lock-table"
 encrypt        = true

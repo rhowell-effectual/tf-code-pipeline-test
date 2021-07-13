@@ -1,2 +1,2 @@
-# tf-code-pipeline-test
-Test repo
+## About this Repo 
+This is starting point of creating a Terraform template repo for typical projects that utilize IaC tooling. It has the initial remote state and build pipeline for automatically applying terraform changes. Work still to do.... More to come...

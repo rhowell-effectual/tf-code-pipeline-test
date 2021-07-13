@@ -1,10 +1,8 @@
 #
-# Doc this...
+# Module to create an AWS Codepipeline for Terraform automation.
 #
 locals {
-#   backend = templatefile("${path.module}/templates/backend.json", { config : var.s3_backend_config, name : local.namespace })
   namespace = substr(join("-", [var.name, random_string.rand.result]), 0, 24)
-  projects = ["plan", "apply"]
 
   default_environment = {
     TF_IN_AUTOMATION  = "1"
@@ -28,6 +26,7 @@ resource "random_string" "rand" {
 resource "aws_codebuild_project" "plan" {
   name         = "${local.namespace}-plan"
   service_role = aws_iam_role.codebuild.arn
+  tags         = var.tags
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -48,6 +47,7 @@ resource "aws_codebuild_project" "plan" {
 resource "aws_codebuild_project" "apply" {
   name         = "${local.namespace}-apply"
   service_role = aws_iam_role.codebuild.arn
+  tags         = var.tags
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -69,20 +69,24 @@ resource "aws_s3_bucket" "codepipeline" {
   bucket        = "${local.namespace}-codepipeline"
   acl           = "private"
   force_destroy = true
+  tags          = var.tags
 }
 
 resource "aws_sns_topic" "codepipeline" {
   name = "${local.namespace}-codepipeline"
+  tags = var.tags
 }
 
 resource "aws_codestarconnections_connection" "github" {
   name          = "${local.namespace}-github"
   provider_type = "GitHub"
+  tags          = var.tags
 }
 
 resource "aws_codepipeline" "codepipeline" {
   name     = "${local.namespace}-pipeline"
   role_arn = aws_iam_role.codepipeline.arn
+  tags     = var.tags
 
   artifact_store {
     location = aws_s3_bucket.codepipeline.bucket

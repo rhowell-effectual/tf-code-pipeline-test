@@ -50,3 +50,8 @@ variable "state_lock_table_arn" {
   default     = null
   description = "S3 bucket containing remote state"
 }
+
+variable "tags" {
+  default = {}
+  description = "User provided tags to be applied to resources"
+}

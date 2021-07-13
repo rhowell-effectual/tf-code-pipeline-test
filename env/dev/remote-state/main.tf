@@ -1,9 +1,10 @@
 #
 # Input variables
 #
+variable "environment_prefix"         { default = "dev" }
 variable "force_destroy_state_bucket" { default = false }
 
-# partial config
+# partial config loaded from ./backend.tfvars
 terraform {
   backend "s3" {}
 }
@@ -13,10 +14,10 @@ terraform {
 module "remote_state" {
   source = "../../../modules/remote-state"
 
-  bucket_name          = "ryan-sandbox-tf-remote-state"
-  environment          = "sandbox"
+  bucket_name          = "${var.environment_prefix}-tf-remote-state"
+  environment          = var.environment_prefix
   force_destroy_bucket = var.force_destroy_state_bucket
-  dynamo_table_name    = "ryan-sandbox-tf-lock-table"
+  dynamo_table_name    = "${var.environment_prefix}-tf-lock-table"
 }
 
 #

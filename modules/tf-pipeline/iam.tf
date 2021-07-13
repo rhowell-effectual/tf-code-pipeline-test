@@ -7,6 +7,7 @@ data "template_file" "assume_role_policy" {
 resource "aws_iam_role" "codebuild" {
   name               = "${local.namespace}-codebuild"
   assume_role_policy = "${data.template_file.assume_role_policy.rendered}"
+  tags               = var.tags
 }
 
 # Codebuild IAM Policy template
@@ -37,6 +38,7 @@ data "template_file" "cp_assume_role_policy" {
 resource "aws_iam_role" "codepipeline" {
   name               = "${local.namespace}-codepipeline"
   assume_role_policy = "${data.template_file.cp_assume_role_policy.rendered}"
+  tags               = var.tags
 }
 
 # Codepipeline IAM Policy template
